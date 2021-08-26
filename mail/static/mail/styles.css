@@ -1,3 +1,7 @@
 textarea {
     min-height: 400px;
 }
+
+#mail_container {
+    white-space: pre-wrap;
+}

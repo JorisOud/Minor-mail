@@ -13,17 +13,37 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#compose-form').onsubmit = send_mail;
 });
 
-function compose_email() {
+function compose_email(email = undefined) {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#email-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
-  // Clear out composition fields
-  document.querySelector('#compose-recipients').value = '';
-  document.querySelector('#compose-subject').value = '';
-  document.querySelector('#compose-body').value = '';
+  // Clear out composition fields if not a reply
+  if (!email){
+    document.querySelector('#compose-recipients').value = '';
+    document.querySelector('#compose-subject').value = '';
+    document.querySelector('#compose-body').value = '';
+  }
+  // Pre-fill composition fields if reply
+  else {
+    document.querySelector('#compose-recipients').value = `${email.sender}`;
+
+    // add Re to subject if not already present
+    let subject = "";
+
+    if (email.subject.includes('Re:')) {
+      subject = email.subject;
+    } else {
+      subject = `Re: ${email.subject}`;
+    }
+
+    document.querySelector('#compose-subject').value = `${subject}`;
+    document.querySelector('#compose-body').value =
+    `\n\nOn ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
+  }
+
 }
 
 function load_email(email_id, mailbox){
@@ -43,6 +63,7 @@ function load_email(email_id, mailbox){
 
     // create container div
     const mail_container = document.createElement('div');
+    mail_container.setAttribute('id', 'mail_container');
     document.querySelector('#email-view').append(mail_container);
 
     // add archive button
@@ -58,7 +79,7 @@ function load_email(email_id, mailbox){
         arch_button.innerHTML = "Unarchive";
       };
 
-      // add eventlistener and make put request to change archived/unarchived
+      // add eventlistener and make PUT request to change archived/unarchived
       arch_button.onclick = function() {
         fetch(`/emails/${email.id}`, {
           method: 'PUT',
@@ -72,6 +93,17 @@ function load_email(email_id, mailbox){
       }
 
       mail_container.append(arch_button);
+
+      // add reply button
+      const reply_button = document.createElement('button');
+      reply_button.innerHTML = "Reply";
+
+      reply_button.onclick = function() {
+        compose_email(email);
+      }
+
+
+      mail_container.append(reply_button);
     };
 
 
